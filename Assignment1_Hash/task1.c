@@ -38,29 +38,35 @@ int main(){
         uniqueness = insertTerm(people, buffer, ARRAY_SIZE, &collisions);
     }while(field_return != -1);
     
-
+    printf("\nTotal Collisions: %i", collisions);
+    
     char search_term[20];
-    strcpy(search_term, "Keaton");
-    int search_freq = searchArray(people, search_term, 59);
-    printf("\n\n%i", search_freq);
+    do{
+        printf("\n\nEnter term to get frequency of type quit to escape: ");
+        fgets(search_term, 20, stdin); // Read the string from stdin
+        //replace the newline so strings can be compared
+        char* pos = strrchr(search_term, '\n');
+        *pos = '\0';
+        //search for term in table
+        if(strcmp(search_term, "quit")){
+            int search_freq = searchArray(people, search_term, 59);
+            printf("Frequency or %s: %i",search_term, search_freq);
+        }
+    }while(strcmp(search_term, "quit"));
+
 
     return 0;
 
-    // char search_term[20];
-    // printf("\nEnter a name to search: ");
-    // fgets(search_term, sizeof(search_term), stdin); // Read the string from stdin
-    // printf("\n%s", search_term);
-    // char search_term2[20];
-    // strcpy(search_term2, search_term);
-    // int search_freq = searchArray(people, search_term2, 59);
-    // printf("\n\n%i", search_freq);
+    
 }
+
 
 int searchArray(person* people, char* s, int ARRAY_SIZE){
     int position = hash1(s);
+    int initial_position = position;
     int loop_done = 0;
     while(1){
-        if((position < ARRAY_SIZE) && (loop_done == 0)){
+        if((position < ARRAY_SIZE)){
             if(strcmp(people[position].name, s) == 0){
                 return (people[position].frequency);
             }else{
@@ -78,7 +84,7 @@ int searchArray(person* people, char* s, int ARRAY_SIZE){
 
 int insertTerm(person* people, char* buffer, int ARRAY_SIZE, int* collisions){
     int hashnum = hash1(buffer);//gets hash of buffer
-    printf("\n%i", hashnum);
+    printf("\nName: %s hash(%i)",buffer, hashnum);
 
     while(1){
         if(hashnum < ARRAY_SIZE){
@@ -92,9 +98,12 @@ int insertTerm(person* people, char* buffer, int ARRAY_SIZE, int* collisions){
             }else {
                 hashnum++;
                 (*collisions)++; // increase collision counter
+                printf(" +");
             }
         }else{
             hashnum = 0;
+            (*collisions)++; // increase collision counter
+            printf(" +!");
         }
     }
 }
@@ -121,7 +130,10 @@ int next_field(FILE *csv, char *buffer, int max_len) {
 
     while (i < max_len - 1) { // prevent buffer overflow
         char buff = fgetc(csv);
-        if (buff == EOF) return -1; // end of file
+        if (buff == EOF){
+            buffer[i] = '\0';
+            return -1; // end of file
+        } 
 
         if ((buff == '"') && inside == 0) { // handle quotes cant believe no bools in C!!!!
             inside = 1;
