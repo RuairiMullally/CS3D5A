@@ -130,6 +130,14 @@ int next_field(FILE *csv, char *buffer, int max_len) {
     return 0;
 }
 
+int readCSV(char* filename, char* buffer, int max_string_len){
+    FILE *csv = fopen(filename, "r"); // open CSV
+    if (csv == NULL) { printf("Error opening file!\n"); return -1; }
+
+    next_field(csv, buffer, max_string_len);
+
+}
+
 /*int readCSV(pokemon *pokemon_array, char *name , int pokemon_array_len, int max_len){
 
     typedef struct pokemon {
