@@ -11,18 +11,18 @@ typedef struct person{
 } person;
 //functions
 int hash1(char* s);
-int hash2(char* s); 
 int hash3(char* s); 
+int hashi(char* s, int array_len, int i);
 int next_field(FILE *csv, char *buffer, int max_len);
-int insertTerm(person* people, char* buffer, int array_len, int* collisions, int* unique_collisions); //linear probing 
-int searchArray(person* people, char* s, int array_len);
+int insertTermDH(person* people, char* buffer, int array_len, int* collisions, int* unique_collisions); //double hashing
+int searchArrayDH(person* people, char* s, int array_len);
 
 
 
 int main(){
     char buffer[MAX_STRING_SIZE]; // contains input from csv
     int field_return; // return value of nextField, checks for new lines
-    int uniqueness; // return value of insertTerm, 1 = new insert, 0 = duplicate/increase freq
+    int uniqueness; // return value of insertTermDH, 1 = new insert, 0 = duplicate/increase freq
     int collisions = 0; // total number of collisions in insersion
     int unique_collisions = 0; // number of unique collisions (first insersion of that string)
     person people[ARRAY_SIZE]; //array of structure type of size ARRAY_SIZE
@@ -39,7 +39,7 @@ int main(){
 
     do{ //main process
         field_return = next_field(csv, buffer, MAX_STRING_SIZE); // get next field from CSV
-        uniqueness = insertTerm(people, buffer, ARRAY_SIZE, &collisions, &unique_collisions); // insert that field to hash table
+        uniqueness = insertTermDH(people, buffer, ARRAY_SIZE, &collisions, &unique_collisions); // insert that field to hash table
     }while(field_return != -1); //while not at end of file
     
     printf("\nTotal Collisions: %i", collisions);
@@ -54,7 +54,7 @@ int main(){
         *pos = '\0';
         //search for term in table
         if(strcmp(search_term, "quit")){
-            int search_freq = searchArray(people, search_term, ARRAY_SIZE);
+            int search_freq = searchArrayDH(people, search_term, ARRAY_SIZE);
             printf("Frequency of %s: %i",search_term, search_freq);
         }
     }while(strcmp(search_term, "quit"));
@@ -63,84 +63,60 @@ int main(){
 }
 
 
-int searchArray(person* people, char* s, int array_len){
-    int position = hash3(s);
-    int initial_position = position;
-    int loop_done = 0;
-    while(1){
-        if((position < array_len)){
-            if(people[position].frequency == 0){//linear probes mean a gap will not exist if was inserted
-                printf("\nString not found!\n"); 
-                return -1;
-            }
-            if(strcmp(people[position].name, s) == 0){
-                return (people[position].frequency);
-            }else{
-                position++;
-            }
+int searchArrayDH(person* people, char* s, int array_len){
+    int position = hash1(s);
+    int probes = 0;
+
+    while(probes < array_len){
+        if(people[position].frequency == 0){//dh probes mean a gap will not exist if was inserted
+            printf("\nString not found!\n"); 
+            return -1;
+        }
+        if(strcmp(people[position].name, s) == 0){
+            return (people[position].frequency);
         }else{
-            position = 0;
-            if(loop_done){printf("\nString not found!\n"); return -1;}
-            loop_done = 1;
+            probes++;
+            position = hashi(s, array_len, probes);
         }
         
     }
-    
 }
 
-int insertTerm(person* people, char* buffer, int array_len, int* collisions, int* unique_collisions){
-    int hashnum = hash3(buffer);//gets hash of buffer
+int insertTermDH(person* people, char* buffer, int array_len, int* collisions, int* unique_collisions){
     int probes = 0;
-    printf("\nName: %s hash(%i)",buffer, hashnum);
-
+    int hashnum1 = hash1(buffer);
+    printf("\nName: %s hash(%i)",buffer, hashnum1);
+    
     while(1){
-        if(hashnum < array_len){
-            if(people[hashnum].frequency == 0){
-                people[hashnum].frequency = 1;
-                strcpy(people[hashnum].name, buffer);
-                (*unique_collisions) += probes;
-                return 1; //unique insertion
-            }else if(strcmp(people[hashnum].name, buffer) == 0){
-                people[hashnum].frequency++;
-                return 0; //not unique insertion
-            }else {
-                hashnum++;
-                (*collisions)++; // increase collision counter
-                probes++;
-                printf(" +");
-            }
-        }else{
-            hashnum = 0;
+        if(people[hashnum1].frequency == 0){
+            people[hashnum1].frequency = 1;
+            strcpy(people[hashnum1].name, buffer);
+            (*unique_collisions) += probes;
+            return 1; //unique insertion
+        }else if(strcmp(people[hashnum1].name, buffer) == 0){
+            people[hashnum1].frequency++;
+            return 0; //not unique insertion
+        }else {
             (*collisions)++; // increase collision counter
             probes++;
-            printf(" +!");
+            printf(" +");
+            
+
+            hashnum1 = hashi(buffer, array_len, probes);
+            printf(" hashi(%i)", hashnum1);
         }
     }
 }
 
-int hash2(char* s){
-    unsigned int hash = 0;
+int hash3(char* s){
+    int hash = 0;
     while(*s){
-        hash = (hash + *s);
-        hash += (hash << 10);
-        hash ^= (hash >> 6);
+        hash = 1 + (hash + (*s) -'A') % (ARRAY_SIZE - 1);
         s++;
     }
-    hash = (hash ^ ARRAY_SIZE);
-    hash = (hash % ARRAY_SIZE);
-    return (int)hash;
+    return hash;
 }
 
-int hash3(char* s){
-    unsigned int hash = 2166136261;
-    while(*s){
-        hash = (hash ^ (*s));
-        hash = (hash * 16777619);
-        s++;
-    }
-    hash = (hash % ARRAY_SIZE);
-    return (int)hash;
-}
 int hash1(char* s){
     int hash = 0;
     while(*s){
@@ -150,7 +126,9 @@ int hash1(char* s){
     return hash;
 }
 
-
+int hashi(char* s, int array_len, int i){
+    return (hash1(s) + (i * hash3(s))) % array_len;
+}
 
 int next_field(FILE *csv, char *buffer, int max_len) {
     for (int n = 0; n < max_len; n++) { // clear the buffer from previous use
