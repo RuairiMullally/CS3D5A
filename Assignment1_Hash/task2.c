@@ -11,9 +11,12 @@ typedef struct person{
 } person;
 //functions
 int hash1(char* s);
+int hash2(char* s); 
+int hash3(char* s); 
 int next_field(FILE *csv, char *buffer, int max_len);
-int insertTerm(person* people, char* buffer, int array_len, int* collisions); //linear probing 
+int insertTerm(person* people, char* buffer, int array_len, int* collisions, int* unique_collisions); //linear probing 
 int searchArray(person* people, char* s, int array_len);
+
 
 
 int main(){
@@ -21,6 +24,7 @@ int main(){
     int field_return; // return value of nextField, checks for new lines
     int uniqueness; // return value of insertTerm, 1 = new insert, 0 = duplicate/increase freq
     int collisions = 0; // total number of collisions in insersion
+    int unique_collisions = 0; // number of unique collisions (first insersion of that string)
     person people[ARRAY_SIZE]; //array of structure type of size ARRAY_SIZE
 
 
@@ -35,10 +39,11 @@ int main(){
 
     do{ //main process
         field_return = next_field(csv, buffer, MAX_STRING_SIZE); // get next field from CSV
-        uniqueness = insertTerm(people, buffer, ARRAY_SIZE, &collisions); // insert that field to hash table
+        uniqueness = insertTerm(people, buffer, ARRAY_SIZE, &collisions, &unique_collisions); // insert that field to hash table
     }while(field_return != -1); //while not at end of file
     
     printf("\nTotal Collisions: %i", collisions);
+    printf("\nUnique Collisions: %i", unique_collisions);
     
     char search_term[MAX_STRING_SIZE];
     do{ // allow users to search for data
@@ -59,7 +64,7 @@ int main(){
 
 
 int searchArray(person* people, char* s, int array_len){
-    int position = hash1(s);
+    int position = hash3(s);
     int initial_position = position;
     int loop_done = 0;
     while(1){
@@ -79,8 +84,9 @@ int searchArray(person* people, char* s, int array_len){
     
 }
 
-int insertTerm(person* people, char* buffer, int array_len, int* collisions){
-    int hashnum = hash1(buffer);//gets hash of buffer
+int insertTerm(person* people, char* buffer, int array_len, int* collisions, int* unique_collisions){
+    int hashnum = hash3(buffer);//gets hash of buffer
+    int probes = 0;
     printf("\nName: %s hash(%i)",buffer, hashnum);
 
     while(1){
@@ -88,6 +94,7 @@ int insertTerm(person* people, char* buffer, int array_len, int* collisions){
             if(people[hashnum].frequency == 0){
                 people[hashnum].frequency = 1;
                 strcpy(people[hashnum].name, buffer);
+                (*unique_collisions) += probes;
                 return 1; //unique insertion
             }else if(strcmp(people[hashnum].name, buffer) == 0){
                 people[hashnum].frequency++;
@@ -95,16 +102,41 @@ int insertTerm(person* people, char* buffer, int array_len, int* collisions){
             }else {
                 hashnum++;
                 (*collisions)++; // increase collision counter
+                probes++;
                 printf(" +");
             }
         }else{
             hashnum = 0;
             (*collisions)++; // increase collision counter
+            probes++;
             printf(" +!");
         }
     }
 }
 
+int hash2(char* s){
+    unsigned int hash = 0;
+    while(*s){
+        hash = (hash + *s);
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
+        s++;
+    }
+    hash = (hash ^ ARRAY_SIZE);
+    hash = (hash % ARRAY_SIZE);
+    return (int)hash;
+}
+
+int hash3(char* s){
+    unsigned int hash = 2166136261;
+    while(*s){
+        hash = (hash ^ (*s));
+        hash = (hash * 16777619);
+        s++;
+    }
+    hash = (hash % ARRAY_SIZE);
+    return (int)hash;
+}
 int hash1(char* s){
     int hash = 0;
     while(*s){
@@ -113,6 +145,8 @@ int hash1(char* s){
     }
     return hash;
 }
+
+
 
 int next_field(FILE *csv, char *buffer, int max_len) {
     for (int n = 0; n < max_len; n++) { // clear the buffer from previous use
