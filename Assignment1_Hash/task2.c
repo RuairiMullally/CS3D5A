@@ -14,7 +14,7 @@ int hash1(char* s);
 int hash2(char* s); 
 int hash3(char* s); 
 int next_field(FILE *csv, char *buffer, int max_len);
-int insertTerm(person* people, char* buffer, int array_len, int* collisions, int* unique_collisions); //linear probing 
+int insertTerm(person* people, char* buffer, int array_len, int* collisions, int* unique_collisions, int* num_terms); //linear probing 
 int searchArray(person* people, char* s, int array_len);
 
 
@@ -25,6 +25,7 @@ int main(){
     int uniqueness; // return value of insertTerm, 1 = new insert, 0 = duplicate/increase freq
     int collisions = 0; // total number of collisions in insersion
     int unique_collisions = 0; // number of unique collisions (first insersion of that string)
+    int num_terms = 0;
     person people[ARRAY_SIZE]; //array of structure type of size ARRAY_SIZE
 
 
@@ -39,11 +40,15 @@ int main(){
 
     do{ //main process
         field_return = next_field(csv, buffer, MAX_STRING_SIZE); // get next field from CSV
-        uniqueness = insertTerm(people, buffer, ARRAY_SIZE, &collisions, &unique_collisions); // insert that field to hash table
+        uniqueness = insertTerm(people, buffer, ARRAY_SIZE, &collisions, &unique_collisions, &num_terms); // insert that field to hash table
     }while(field_return != -1); //while not at end of file
     
-    printf("\nTotal Collisions: %i", collisions);
-    printf("\nUnique Collisions: %i", unique_collisions);
+    printf("\nCOMPLETE");
+    printf("\nCapacity         : %i\nNum Terms        : %i", ARRAY_SIZE, num_terms);
+    printf("\nTotal Collisions : %i\nUnique Collisions: %i", collisions, unique_collisions);
+    float capacity = (float)ARRAY_SIZE; 
+    float load = ((float)num_terms/capacity);
+    printf("\nLoad             : %.0f%%", load*100);
     
     char search_term[MAX_STRING_SIZE];
     do{ // allow users to search for data
@@ -88,7 +93,7 @@ int searchArray(person* people, char* s, int array_len){
     
 }
 
-int insertTerm(person* people, char* buffer, int array_len, int* collisions, int* unique_collisions){
+int insertTerm(person* people, char* buffer, int array_len, int* collisions, int* unique_collisions, int* num_terms){
     int hashnum = hash3(buffer);//gets hash of buffer
     int probes = 0;
     printf("\nName: %s hash(%i)",buffer, hashnum);
@@ -99,6 +104,7 @@ int insertTerm(person* people, char* buffer, int array_len, int* collisions, int
                 people[hashnum].frequency = 1;
                 strcpy(people[hashnum].name, buffer);
                 (*unique_collisions) += probes;
+                (*num_terms)++;
                 return 1; //unique insertion
             }else if(strcmp(people[hashnum].name, buffer) == 0){
                 people[hashnum].frequency++;

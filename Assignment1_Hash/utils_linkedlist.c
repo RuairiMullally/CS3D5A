@@ -26,16 +26,10 @@ typedef struct person{// element in array which contains the pointer to the begi
 int hash1(char* s, int array_len);
 node* createNode(int number_fields, FILE* csv, char* buffer, int max_field_len);
 int next_field(FILE *csv, char *buffer, int max_len);
+void printTitle();
 
 int main(){
-    person people[5];
-    char buffer[20];
-    FILE *csv = fopen("truncated.csv", "r"); // open CSV
-    if (csv == NULL) { printf("Error opening file!\n"); return -1; }
-    node* n = createNode(10, csv, buffer, 20);
-    people[4].head = n;
-
-    int hash = hash1(people[4].head->surname, 5);
+    printTitle();
 
     return 0;
 }
@@ -121,5 +115,9 @@ node* createNode(int number_fields, FILE* csv, char* buffer, int max_field_len){
     return p;
 }
 
-
+void printTitle(){
+    //printf("\n %-9i %-13s %-20s %-20s %-3i %-20s %-8s %-15s %-15s %-20s", "Person ID", "Deposition ID", "Surname", "Forename", "Age", "Person Type", "Gender", "Nationality", "Religion", "Occupation");
+    printf("\n %-9s %-13s %-20s %-20s %-3s %-20s %-8s %-15s %-15s %-20s", \
+    "Person ID", "Deposition ID", "Surname", "Forename", "Age", "Person Type", "Gender", "Nationality", "Religion", "Occupation");
+}
 

@@ -33,7 +33,8 @@ void printTitle();
 int hash1(char* s, int array_len);
 int hash3(char* s, int array_len); 
 int hashi(char* s, int array_len, int i);
-int insertTermDHSurname(people* hash_table, node* n, int array_len, int* collisions, int* unique_collisions);
+int insertTermDHSurname(people* hash_table, node* n, int array_len, int* collisions, int* unique_collisions, int* num_terms);
+int searchTableDHSurname(people* hash_table, char* surname, int array_len);
 
 int main(){
     people hash_table[MAX_ARRAY_LEN];
@@ -42,6 +43,7 @@ int main(){
     int collisions = 0;
     int unique_collisions = 0;
     int field_return;
+    int num_terms = 0;
     //initialize hash table
     for(int k = 0; k < MAX_ARRAY_LEN; k++){
         hash_table[k].head = NULL;
@@ -54,12 +56,43 @@ int main(){
     do{
         node* n = createNode(10, csv, buffer, MAX_STRING_LEN, &field_return);
         if(i == -1){i++;continue;}
-        uniqueness = insertTermDHSurname(hash_table, n, MAX_ARRAY_LEN, &collisions, &unique_collisions);
+        uniqueness = insertTermDHSurname(hash_table, n, MAX_ARRAY_LEN, &collisions, &unique_collisions, &num_terms);
         //printNode(n);
         i++;
         printNode(n);
     }while(field_return != -1);
     printf("\nCOMPLETE");
+    printf("\nCapacity         : %i\nNum Terms        : %i", MAX_ARRAY_LEN, num_terms);
+    printf("\nTotal Collisions : %i\nUnique Collisions: %i", collisions, unique_collisions);
+    float capacity = (float)MAX_ARRAY_LEN; 
+    float load = ((float)num_terms/capacity);
+    printf("\nLoad             : %.0f%%", load*100);
+
+
+    char search_term[MAX_STRING_LEN];
+    do{ // allow users to search for data
+        printf("\n\nEnter term to get frequency or type quit to escape: ");
+        fgets(search_term, MAX_STRING_LEN, stdin); // Read the string from stdin
+        //replace the newline so strings can be compared
+        char* pos = strrchr(search_term, '\n');
+        *pos = '\0';
+        //search for term in table
+        if(strcmp(search_term, "quit")){
+            int hash_key = searchTableDHSurname(hash_table, search_term, MAX_ARRAY_LEN);
+            printf("\nHash of %s: %i",search_term, hash_key);
+            if(hash_key != -1){
+                node* head = hash_table[hash_key].head;
+                printTitle();
+            
+                do{
+                    printNode(head);
+                    head = head->next;
+                }while(head != NULL);
+            }
+            
+            
+        }
+    }while(strcmp(search_term, "quit"));
 
 return 0;
 }
@@ -133,11 +166,13 @@ node* createNode(int number_fields, FILE* csv, char* buffer, int max_field_len, 
 }
 
 void printTitle(){
-    printf("\n Person ID Deposition ID              Surname             Forename Age Person Type  Gender     Nationality        Religion           Occupation");
+    //printf("\n %-9i %-13s %-20s %-20s %-3i %-20s %-8s %-15s %-15s %-20s", "Person ID", "Deposition ID", "Surname", "Forename", "Age", "Person Type", "Gender", "Nationality", "Religion", "Occupation");
+    printf("\n %-9s  %-13s  %-20s %-20s %-3s  %-20s  %-8s %-15s %-15s %-20s", \
+    "PersonID", "DepositionID", "Surname", "Forename", "Age", "PersonType", "Gender", "Nationality", "Religion", "Occupation");
 }
 
 void printNode(node* p){
-    printf("\n %9i %13s %20s %20s %3i %11s %7s %15s %15s %20s", \
+    printf("\n %-9i  %-13s  %-20s %-20s %-3i  %-20s  %-8s %-15s %-15s %-20s", \
     p->person_id, p->deposition_id, p->surname, p->forename, p->age, p->person_type, p->gender, p->nationality, p->religion, p->occupation);
 }
 
@@ -149,7 +184,7 @@ int hash3(char* s, int array_len){
         s++;
     }
     //printf(" %i", hash);
-    return hash;
+    return abs(hash);
 }
 
 int hash1(char* s, int array_len){
@@ -161,7 +196,7 @@ int hash1(char* s, int array_len){
         s++;
     }
     //printf(" %i", hash);
-    return hash;
+    return abs(hash);
 }
 
 int hashi(char* s, int array_len, int i){
@@ -173,18 +208,23 @@ int hashi(char* s, int array_len, int i){
     return hash;
 }
 
-int insertTermDHSurname(people* hash_table, node* n, int array_len, int* collisions, int* unique_collisions){
-    people* HASH_TABLE_COPY = hash_table;
+int insertTermDHSurname(people* hash_table, node* n, int array_len, int* collisions, int* unique_collisions, int* num_terms){
     int probe = 0;
     char*surname = n->surname;
+
+    if(strcmp(surname, "") == 0){
+        strcpy(surname, "Null");
+    }
+
     int hashnum = hash1(surname, array_len);
-    printf("\nSurname: %s Hash(%i)", surname, hashnum);
+    //printf("\nSurname: %s Hash(%i)", surname, hashnum);
     node* head = NULL;
 
     while(1){
         if(hash_table[hashnum].head == NULL){//if position is empty, insert node pointer into head of people;
             hash_table[hashnum].head = n;
             (*unique_collisions) += probe;
+            (*num_terms)++;
             return 1; //unique insertion 
         }else if (strcmp((hash_table[hashnum].head->surname), surname) == 0){//else if surnames match
             //printf("\n SAME SURNAME: %s", hash_table[hashnum].head->surname);
@@ -202,7 +242,24 @@ int insertTermDHSurname(people* hash_table, node* n, int array_len, int* collisi
             //printf(" + Hash(%i)", hashnum);
         }
     }
-    
-    
+}
+
+int searchTableDHSurname(people* hash_table, char* surname, int array_len){
+    int probe = 0;
+    if(strcmp(surname, "") == 0){
+        strcpy(surname, "Null");
+    }
+    int hashnum = hash1(surname, array_len);
+    while(1){
+        if(hash_table[hashnum].head == NULL){//if position is empty, not in table
+            return -1; //unique insertion 
+        }else if (strcmp((hash_table[hashnum].head->surname), surname) == 0){//else if surnames match return key
+            return hashnum;
+        }else{
+            probe ++;
+            if(probe == array_len){return -1;}
+            hashnum = hashi(surname, array_len, probe);
+        }
+    }
 
 }
