@@ -94,6 +94,19 @@ int main(){
         }
     }while(strcmp(search_term, "quit"));
 
+    //free memory
+    for(int k = 0; k < MAX_ARRAY_LEN; k++){
+        node* current = hash_table[k].head;
+        while(current != NULL){
+            node* temp = current;
+            current = current->next;
+            free(temp); // free the node
+        }
+        hash_table[k].head = NULL;// reset head pointer
+    }
+
+    printf("\nMemory has been freed, exiting.\n");
+
 return 0;
 }
 
