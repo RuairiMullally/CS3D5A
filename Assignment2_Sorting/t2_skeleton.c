@@ -13,31 +13,36 @@ int partition(int* arr, int left_bound, int right_bound);
 
 void selectionSort(int arr[], int size) 
 { 
-    number_swaps = 0;
+    number_comparisons = 0;
     int min_index;
     for(int i = 0; i < size; i++){
         min_index = find_min(arr, i, size);
         swap(&arr[i], &arr[min_index]);
-        number_swaps++;
     }
   
 } 
 
 void insertionSort(int arr[], int size) 
 { 
-  for(int i = 0; i < size; i++){
-    int k = i;
-    while((arr[k + 1] < arr[k]) && k >= 0){
-        swap(&arr[k+1], &arr[k]);
-        number_swaps++;
-        k--;
-    }
+    number_comparisons = 0;
+    for(int i = 0; i < size; i++){
+        int k = i;
+
+        while((arr[k + 1] < arr[k]) && k >= 0){
+            number_comparisons++;
+            swap(&arr[k+1], &arr[k]);
+            k--;
+        }
+        if(k == i){
+            number_comparisons ++;
+        }
   }
   
 }
 
 void quickSort(int arr[], int size) 
 { 
+    number_comparisons = 0;
     int left = 0;
     int right = size - 1;
     callQuickSort(arr, left, right);
@@ -48,13 +53,14 @@ void swap(int *a, int *b){
     int temp = *a;
     *a = *b;
     *b = temp;
-    
+    number_swaps++;
 }
 
 int find_min(int *arr, int i, int size){
     int min = arr[i];
     int min_index = i;
     for(int k = i; k < size; k++){
+        number_comparisons++;
         if(arr[k] < min){
             min = arr[k];
             min_index = k;
@@ -78,17 +84,17 @@ int partition(int* arr, int left_bound, int right_bound){
     while(1){
         while(arr[i] <= pivot && i < right_bound){
             i++;
+            number_comparisons++;
         }
         while(arr[j] >= pivot && j > left_bound){
             j--;
+            number_comparisons++;
         }
         if(i >= j){
             swap(&arr[i], &arr[right_bound]);
-            number_swaps++;
             return i; // Return the partition index
         }
         swap(&arr[i], &arr[j]);
-        number_swaps++;
     } 
 }
 
