@@ -17,7 +17,9 @@ void selectionSort(int arr[], int size)
     int min_index;
     for(int i = 0; i < size; i++){
         min_index = find_min(arr, i, size);
-        swap(&arr[i], &arr[min_index]);
+        if (min_index != i) {
+            swap(&arr[i], &arr[min_index]);
+        }
     }
   
 } 
@@ -25,17 +27,18 @@ void selectionSort(int arr[], int size)
 void insertionSort(int arr[], int size) 
 { 
     number_comparisons = 0;
-    for(int i = 0; i < size; i++){
+    for(int i = 0; i < size - 1; i++){
         int k = i;
+        number_comparisons ++;
 
         while((arr[k + 1] < arr[k]) && k >= 0){
             number_comparisons++;
             swap(&arr[k+1], &arr[k]);
             k--;
         }
-        if(k == i){
-            number_comparisons ++;
-        }
+        // if(k != i){
+        //     number_comparisons --;
+        // }
   }
   
 }
@@ -59,7 +62,7 @@ void swap(int *a, int *b){
 int find_min(int *arr, int i, int size){
     int min = arr[i];
     int min_index = i;
-    for(int k = i; k < size; k++){
+    for(int k = i+1; k < size; k++){
         number_comparisons++;
         if(arr[k] < min){
             min = arr[k];
