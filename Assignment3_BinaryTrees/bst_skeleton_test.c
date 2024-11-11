@@ -2,31 +2,18 @@
 #include <stdio.h>
 #include "bst.h"
 
-void inorder(struct Tree_Node* root);
-
 int main(){
     char data[] = {'F','L','O','C','C','I','N','A','U','C','I','N','I','H','I','L','I','P','I','L','I','F','I','C','A','T','I','O','N'};
+    //char data[] = {'D', 'B', 'A', 'C', 'F', 'E', 'G'};
+    Tree_Node* tree = create_bst(data);
 
-    Tree_Node* root = NULL;
+    tree_print_sorted(tree);
 
-    // Characters to insert into the BST
-    char elements[] = {'D', 'B', 'A', 'C', 'F', 'E', 'G'};
-    int n = sizeof(elements) / sizeof(elements[0]);
+    //Tree_Node* result = tree_search(tree, 'B');
+    //printf("True: %c ", result->data);
 
-    // Insert each character
-    for (int i = 0; i < n; i++) {
-        tree_insert(&root, elements[i]);
-    }
-
-    inorder(root);
-
+    tree_delete(tree);
     return 0;
 }
 
-void inorder(Tree_Node* root) {
-    if (root != NULL) {
-        inorder((root)->left);
-        printf("%c ", (root)->data);
-        inorder((root)->right);
-    }
-}
+
