@@ -319,7 +319,7 @@ static int
 search_word_count ( struct profile *p, int i ) {    
     size_t j = rand()%g_collection_size;
     int wc = p->db->get_word_count( g_books[j].db_id ); 
-    return ( wc < 0 || wc != g_books[j].word_count );
+    return ( wc == -1 || wc != g_books[j].word_count );
 }
 
 //=== FUNCTION ================================================================

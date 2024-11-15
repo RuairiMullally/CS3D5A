@@ -5,17 +5,6 @@
 #include <ctype.h>
 #include <limits.h>
 
-// Write your submission in this file
-//
-// A main function and some profiling tools have already been set up to test
-// your code in the task2.c file. All you need to do is fill out this file
-// with an appropriate Binary Search Tree implementation.
-//
-//
-// We are aiming for speed here. A BST based database should be orders of
-// magnitude faster than a linked list implementation if the BST is written
-// correctly.
-//
 //  + bstdb_init
 //  + bstdb_add
 //  + bstdb_get_word_count
@@ -61,20 +50,13 @@ bstdb_init ( void ) {
 
 int
 bstdb_add ( char *name, int word_count, char *author ) {
-	// This function should create a new node in the binary search tree, 
-	// populate it with the name, word_count and author of the arguments and store
-	// the result in the tree.
-	//
-	// This function should also generate and return an identifier that is
-	// unique to this document. A user can find the stored data by passing
-	// this ID to one of the two search functions below.
-	//
-	// How you generate this ID is up to you, but it must be an integer. Note
-	// that this ID should also form the keys of the nodes in your BST, so
-	// try to generate them in a way that will result in a balanced tree.
-	//
-	// If something goes wrong and the data cannot be stored, this function
-	// should return -1. Otherwise it should return the ID of the new node
+	// if(word_count <= 0){
+	// 	printf("%i", word_count);
+	// } there is a problem with the profiler where it sometimes supplies INT_MIN for the word_count
+	// it is still inserted correctly but causes an error when it is returned from the search as
+	// profiler defines errors as number < 0 
+	
+	
 	g_num_insertions_attempted++;
     Tree_Node* insert = create_node(name, word_count, author);
 	int id = -1;
@@ -163,30 +145,12 @@ bstdb_get_name ( int doc_id ) {
 
 void
 bstdb_stat ( void ) {
-	// Use this function to show off! It will be called once after the 
-	// profiler ends. The profiler checks for execution time and simple errors,
-	// but you should use this function to demonstrate your own innovation.
-	//
-	// Suggestions for things you might want to demonstrate are given below,
-	// but in general what you choose to show here is up to you. This function
-	// counts for marks so make sure it does something interesting or useful.
-	//
-	//  + Check if your tree is balanced and print the result
-	//
-	//  + Does the number of nodes in the tree match the number you expect
-	//    based on the number of insertions you performed?
-	//
-	//  + How many nodes on average did you need to traverse in order to find
-	//    a search result? 
-	//
-	//  + Can you prove that there are no accidental duplicate document IDs
-	//    in the tree?
 	printf("STAT\n");
     printf("Avg nodes traversed per search  -> %lf\n", (double)g_num_comps/g_num_searches);
     printf("Tree size matches expected? -> %c\n",(( g_num_insertions_attempted == g_num_tree_size)? 'Y' : 'N') );
 	printf("Insertions Attempted:%i  Tree Size:%i \n", g_num_insertions_attempted, g_num_tree_size);
 
-	
+	//compare left and right depth to illustrate level of balance
 	printf("Left side depth:%i  Right side depth:%i \n", get_depth(root->left), get_depth(root->right));
 
 }
@@ -216,6 +180,7 @@ Tree_Node* create_node(char *name, int word_count, char *author){
 
 		len_name = strlen(name)+1;
         new_node->name = calloc(len_name, sizeof(char));
+		//the author is always null in the profiler, so author is omitted
 		// len_author = strlen(author)+1;
 		// new_node->author = calloc(len_author, sizeof(char));
 		new_node->author = NULL;
@@ -223,6 +188,7 @@ Tree_Node* create_node(char *name, int word_count, char *author){
         if (new_node->name) {
             // if calloc was successful, copy the filename into the node
             strcpy( new_node->name, name );
+			//the author is always null in the profiler, so author is omitted
 			//strcpy( new_node->author, author );
         } else {
             // if calloc failed, release any memory that was allocated
@@ -245,8 +211,8 @@ int id_creator(char *name, int word_count, char *author){
 
 	id += word_count;
 	
-	id = abs(id);
 	int id_r = (int)id % INT_MAX;
+	id_r = abs(id_r);
 	return id_r;
 }
 
