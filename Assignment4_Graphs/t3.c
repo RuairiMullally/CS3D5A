@@ -283,8 +283,10 @@ int get_min_distance(Graph* g, int* distance, bool* visited, int* min_val){
 
     for(int i = 0; i < g->num_vertices; i++){
         if(visited[i] == false && distance[i] <= min){
-            min = distance[i];
-            min_index = i;
+             if (distance[i] < min || min_index == -1 || i < min_index) {
+                min = distance[i];
+                min_index = i;
+            }
         }
     }
     *min_val = min;
